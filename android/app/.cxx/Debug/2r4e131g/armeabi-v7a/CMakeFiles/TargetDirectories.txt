@@ -1,0 +1,2 @@
+C:/Users/DELL/AndroidStudioProjects/promotores/android/app/.cxx/Debug/2r4e131g/armeabi-v7a/CMakeFiles/edit_cache.dir
+C:/Users/DELL/AndroidStudioProjects/promotores/android/app/.cxx/Debug/2r4e131g/armeabi-v7a/CMakeFiles/rebuild_cache.dir

@@ -1,0 +1,31 @@
+name: promotores
+description: "Verificación de promotores turísticos."
+publish_to: 'none'
+
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.7.2
+
+dependencies:
+  flutter:
+    sdk: flutter
+  cupertino_icons: ^1.0.8
+  sqflite: ^2.3.0       # Base de datos SQLite (corregido el nombre)
+  path_provider: ^2.1.1 # Para rutas de almacenamiento
+  path: ^1.8.3         # Manipulación de rutas
+  firebase_auth: ^4.18.1      # Autenticación
+  firebase_core: ^2.24.0  # Última versión estable
+  provider: ^6.1.1           # Gestión de estado
+  rxdart: ^0.27.7
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
+
+flutter:
+  uses-material-design: true
+
+  assets:
+    - assets/icons/icon.png  # Assets movidos a la sección flutter
