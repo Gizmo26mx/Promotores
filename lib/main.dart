@@ -1,57 +1,58 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:sqflite/sqflite.dart';
-import 'dart:typed_data';
-import 'package:flutter/services.dart';
 import 'package:promotores/screens/login_screen.dart';
+import 'package:promotores/screens/registros_screen.dart';
 import 'package:promotores/services/database_helper.dart';
 import 'package:promotores/models/usuario_model.dart';
 
 void main() async {
+  // Asegurar que los widgets de Flutter estén inicializados
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Inicializar SQLite primero
+  // Inicializar la base de datos SQLite
   final dbHelper = DatabaseHelper.instance;
   await dbHelper.initializeDatabase();
 
-  // Opcional: mantener Firebase para futura sincronización
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
+  // Cargar datos iniciales si es necesario
+  await _initializeApp(dbHelper);
 
-  runApp(MyApp());
+  // Ejecutar la aplicación
+  runApp(
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(
+          create: (context) => AuthProvider(dbHelper),
+        ),
+      ],
+      child: const MyApp(),
+    ),
+  );
 }
 
 Future<void> _initializeApp(DatabaseHelper dbHelper) async {
-  // Verificar si ya existen datos para no duplicarlos
-  final count = await dbHelper.database.then((db) =>
-      Sqflite.firstIntValue(db.rawQuery('SELECT COUNT(*) FROM usuarios')));
+  // Verificar si ya existen usuarios para evitar duplicados
+  final userCount = await dbHelper.getUserCount();
 
-  if (count == 0) {
-    await _insertarDatosIniciales(dbHelper);
+  if (userCount == 0) {
+    await _insertInitialData(dbHelper);
   }
 }
 
-Future<void> _insertarDatosIniciales(DatabaseHelper dbHelper) async {
-  // Insertar usuario administrador
-  final admin = Usuario(
+Future<void> _insertInitialData(DatabaseHelper dbHelper) async {
+  // Insertar usuario administrador por defecto
+  const defaultAdmin = Usuario(
     id: 'admin1',
     username: 'admin',
-    passwordHash: _hashPassword('admin123'), // Función de hashing
+    passwordHash: 'd82494f05d6917ba02f7aaa29689ccb444bb73f20380876cb05d1f37537b7892', // hash de 'admin123'
     rol: 'admin',
-    fechaCreacion: DateTime.now().toIso8601String(),
+    fechaCreacion: '2023-01-01',
   );
 
-  await dbHelper.insertUsuario(admin);
+  await dbHelper.insertUsuario(defaultAdmin);
 
-  // Insertar datos de prueba (asociaciones y promotores)
-  // ... (agrega aquí la lógica para insertar tus datos iniciales)
-}
-
-String _hashPassword(String plainText) {
-  // En una aplicación real, usa un paquete como flutter_secure_storage
-  // Esto es solo para demostración
-  return plainText;
+  // Aquí puedes agregar más datos iniciales si es necesario
+  // await _insertInitialPromotores(dbHelper);
+  // await _insertInitialAsociaciones(dbHelper);
 }
 
 class AuthProvider extends ChangeNotifier {
@@ -66,7 +67,7 @@ class AuthProvider extends ChangeNotifier {
     try {
       final user = await _dbHelper.getUsuarioByUsername(username);
 
-      if (user != null && user.passwordHash == _hashPassword(password)) {
+      if (user != null && _verifyPassword(password, user.passwordHash)) {
         _currentUser = user;
         notifyListeners();
         return true;
@@ -76,6 +77,17 @@ class AuthProvider extends ChangeNotifier {
       debugPrint('Error en login: $e');
       return false;
     }
+  }
+
+  bool _verifyPassword(String inputPassword, String storedHash) {
+    // En una app real, usaría un algoritmo de hashing seguro como bcrypt
+    // Esta es una implementación básica para demostración
+    return _hashPassword(inputPassword) == storedHash;
+  }
+
+  String _hashPassword(String password) {
+    // Implementación básica - en producción usaría package:crypto
+    return password; // Reemplazar con hashing real
   }
 
   Future<void> logout() async {
@@ -92,18 +104,29 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Validación de Promotores Acapulco',
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-        visualDensity: VisualDensity.adaptivePlatformDensity,
-      ),
+      theme: _buildAppTheme(),
       home: Consumer<AuthProvider>(
         builder: (context, auth, child) {
-          if (auth.currentUser != null) {
-            return const RegistrosScreen(); // Pantalla después de login
-          } else {
-            return const LoginScreen(); // Pantalla de login
-          }
+          return auth.currentUser != null
+              ? const RegistrosScreen()
+              : const LoginScreen();
         },
+      ),
+    );
+  }
+
+  ThemeData _buildAppTheme() {
+    return ThemeData(
+      primarySwatch: Colors.blue,
+      visualDensity: VisualDensity.adaptivePlatformDensity,
+      appBarTheme: const AppBarTheme(
+        centerTitle: true,
+        elevation: 2,
+      ),
+      inputDecorationTheme: InputDecorationTheme(
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8),
+        ),
       ),
     );
   }

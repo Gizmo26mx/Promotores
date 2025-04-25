@@ -86,4 +86,10 @@ class DatabaseHelper {
   }
 
 // Métodos para asociaciones y usuarios...
+  Future<int> getUserCount() async {
+    final db = await database;
+    return Sqflite.firstIntValue(
+        await db.rawQuery('SELECT COUNT(*) FROM usuarios')
+    ) ?? 0;
+  }
 }
