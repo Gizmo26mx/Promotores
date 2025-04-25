@@ -65,7 +65,7 @@ class DatabaseHelper {
     }
   }
 
-  // Métodos CRUD para promotores
+  // Métodos CRUD para promotore
   Future<int> insertPromotor(Promotor promotor) async {
     final database = await db;
     return await database.insert(
