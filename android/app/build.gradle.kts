@@ -2,7 +2,7 @@ plugins {
     id("com.android.application")
     id("kotlin-android")
     id("dev.flutter.flutter-gradle-plugin")
-    id("com.google.gms.google-services") // Añade este plugin para Firebase
+    //id("com.google.gms.google-services") // Añade este plugin para Firebase
 }
 
 android {
@@ -39,7 +39,7 @@ android {
 
     buildscript {
         dependencies {
-            classpath("com.google.gms:google-services:4.3.15")
+           // classpath("com.google.gms:google-services:4.3.15")
             // ... otras dependencias
         }
     }
