@@ -1,95 +1,88 @@
-import 'package:sqflite/sqflite.dart';
+import 'dart:io';
 import 'package:path/path.dart';
-import '../models/promotor_model.dart';
-import '../models/asociacion_model.dart'; //
-import '../models/usuario_model.dart';
+import 'package:sqflite/sqflite.dart';
+import 'package:path_provider/path_provider.dart';
 
 class DatabaseHelper {
-  static final DatabaseHelper _instance = DatabaseHelper._internal();
-  factory DatabaseHelper() => _instance;
-  static Database? _db;
+  static final _dbName = 'promotores.db';
+  static final _dbVersion = 1;
+  static final _tableName = 'usuarios';
+  static final _promotoresTable = 'promotores';
 
-  DatabaseHelper._internal();
+  DatabaseHelper._privateConstructor();
+  static final DatabaseHelper instance = DatabaseHelper._privateConstructor();
 
-  Future<Database> get db async {
-    _db ??= await _initDb();
-    return _db!;
+  static Database? _database;
+
+  Future<Database> get database async {
+    if (_database != null) return _database!;
+    _database = await _initDatabase();
+    return _database!;
   }
 
-  Future<Database> _initDb() async {
-    final path = join(await getDatabasesPath(), 'promotores_acapulco.db');
+  Future<void> initDB() async {
+    await database;
+  }
+
+  Future<Database> _initDatabase() async {
+    Directory documentsDirectory = await getApplicationDocumentsDirectory();
+    String path = join(documentsDirectory.path, _dbName);
     return await openDatabase(
       path,
-      version: 2,
+      version: _dbVersion,
       onCreate: _onCreate,
-      onUpgrade: _onUpgrade,
     );
   }
 
   Future<void> _onCreate(Database db, int version) async {
     await db.execute('''
-      CREATE TABLE asociaciones (
-        id TEXT PRIMARY KEY,
-        nombre TEXT NOT NULL,
-        lider TEXT NOT NULL,
-        telefono_lider TEXT NOT NULL
+      CREATE TABLE $_tableName (
+        id INTEGER PRIMARY KEY,
+        username TEXT NOT NULL,
+        password TEXT NOT NULL
       )
     ''');
 
     await db.execute('''
-      CREATE TABLE promotores (
-        id TEXT PRIMARY KEY,
-        folio TEXT UNIQUE NOT NULL,
+      CREATE TABLE $_promotoresTable (
+        id INTEGER PRIMARY KEY,
         nombre TEXT NOT NULL,
-        asociacion_id TEXT NOT NULL,
-        sector TEXT NOT NULL,
-        vestimenta TEXT NOT NULL,
-        foto BLOB NOT NULL,
-        FOREIGN KEY (asociacion_id) REFERENCES asociaciones(id)
+        numero_promotor TEXT NOT NULL UNIQUE,
+        empresa TEXT
       )
     ''');
 
-    await db.execute('''
-      CREATE TABLE usuarios (
-        id TEXT PRIMARY KEY,
-        email TEXT UNIQUE NOT NULL,
-        password_hash TEXT NOT NULL,
-        rol TEXT NOT NULL
-      )
-    ''');
+    // Usuario y promotor de prueba
+    await db.insert(_tableName, {
+      'username': 'admin',
+      'password': '1234'
+    });
+    await db.insert(_promotoresTable, {
+      'nombre': 'Juan Pérez',
+      'numero_promotor': 'PR1234',
+      'empresa': 'Turismo Acapulco'
+    });
   }
 
-  Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
-    if (oldVersion < 2) {
-      await db.execute('ALTER TABLE promotores ADD COLUMN sincronizado INTEGER DEFAULT 0');
-    }
-  }
-
-  // Métodos CRUD para promotore
-  Future<int> insertPromotor(Promotor promotor) async {
-    final database = await db;
-    return await database.insert(
-      'promotores',
-      promotor.toMap(),
-      conflictAlgorithm: ConflictAlgorithm.replace,
+  Future<Map<String, dynamic>?> getUser(String username, String password) async {
+    Database db = await instance.database;
+    List<Map<String, dynamic>> result = await db.query(
+      _tableName,
+      where: 'username = ? AND password = ?',
+      whereArgs: [username, password],
     );
+    if (result.isNotEmpty) return result.first;
+    return null;
   }
 
-  Future<Promotor?> getPromotorByFolio(String folio) async {
-    final db = await database;
-    final maps = await db.query(
-      'promotores',
-      where: 'folio = ?',
-      whereArgs: [folio],
+  Future<Map<String, dynamic>?> getPromotorByNumero(String numero) async {
+    Database db = await instance.database;
+    List<Map<String, dynamic>> result = await db.query(
+      _promotoresTable,
+      where: 'numero_promotor = ?',
+      whereArgs: [numero],
     );
-    return maps.isNotEmpty ? Promotor.fromMap(maps.first) : null;
-  }
-
-// Métodos para asociaciones y usuarios...
-  Future<int> getUserCount() async {
-    final db = await database;
-    return Sqflite.firstIntValue(
-        await db.rawQuery('SELECT COUNT(*) FROM usuarios')
-    ) ?? 0;
+    if (result.isNotEmpty) return result.first;
+    return null;
   }
 }
