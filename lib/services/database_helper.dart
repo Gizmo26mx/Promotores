@@ -1,135 +1,90 @@
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
-import '../models/registro.dart';
-import '../models/promotor.dart';
+import 'dart:typed_data';
 
 class DatabaseHelper {
-  static const _databaseName = 'app_database.db';
-  static const _databaseVersion = 2; // Incrementado por cambios en esquema
+  static const _databaseName = 'promotores_acapulco.db';
+  static const _databaseVersion = 1;
 
-  // Singleton
+  // Singleton pattern
   DatabaseHelper._privateConstructor();
   static final DatabaseHelper instance = DatabaseHelper._privateConstructor();
 
   static Database? _database;
-  Future<Database> get database async => _database ??= await _initDatabase();
+  Future<Database> get database async {
+    if (_database != null) return _database!;
+    _database = await _initDatabase();
+    return _database!;
+  }
 
   Future<Database> _initDatabase() async {
-    final path = await getDatabasesPath();
-    return openDatabase(
-      join(path, _databaseName),
-      onCreate: _onCreate,
+    final path = join(await getDatabasesPath(), _databaseName);
+    return await openDatabase(
+      path,
       version: _databaseVersion,
-      onUpgrade: _onUpgrade,
+      onCreate: _onCreate,
+      onConfigure: _onConfigure,
     );
   }
 
+  // Configuración de claves foráneas
+  Future<void> _onConfigure(Database db) async {
+    await db.execute('PRAGMA foreign_keys = ON');
+  }
+
+  // CREACIÓN DE TABLAS (Aquí se implementan las tablas)
   Future<void> _onCreate(Database db, int version) async {
+    // 1. Tabla de Usuarios (para login)
     await db.execute('''
-      CREATE TABLE registros (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        nombre TEXT NOT NULL,
-        detalle TEXT NOT NULL,
-        sincronizado INTEGER DEFAULT 0
+      CREATE TABLE usuarios (
+        id TEXT PRIMARY KEY,
+        username TEXT UNIQUE NOT NULL,
+        password_hash TEXT NOT NULL,
+        rol TEXT NOT NULL CHECK (rol IN ('admin', 'validador')),
+        fecha_creacion TEXT DEFAULT (datetime('now','localtime'))
       )
     ''');
 
+    // 2. Tabla de Asociaciones
+    await db.execute('''
+      CREATE TABLE asociaciones (
+        id TEXT PRIMARY KEY,
+        nombre TEXT NOT NULL,
+        lider TEXT NOT NULL,
+        telefono_lider TEXT NOT NULL,
+        descripcion TEXT,
+        logo BLOB,
+        fecha_registro TEXT DEFAULT (datetime('now','localtime'))
+      )
+    ''');
+
+    // 3. Tabla de Promotores (con relación a asociaciones)
     await db.execute('''
       CREATE TABLE promotores (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        folio TEXT PRIMARY KEY,
         nombre TEXT NOT NULL,
-        zona TEXT NOT NULL,
-        sincronizado INTEGER DEFAULT 0,
-        fecha_creacion TEXT NOT NULL
+        asociacion_id TEXT NOT NULL,
+        sector TEXT NOT NULL,
+        vestimenta TEXT NOT NULL,
+        foto BLOB NOT NULL,
+        activo INTEGER DEFAULT 1,
+        fecha_registro TEXT DEFAULT (datetime('now','localtime')),
+        FOREIGN KEY (asociacion_id) REFERENCES asociaciones(id) ON DELETE RESTRICT
       )
+    ''');
+
+    // Índices para mejorar el rendimiento
+    await db.execute('''
+      CREATE INDEX idx_promotor_asociacion 
+      ON promotores(asociacion_id)
+    ''');
+
+    await db.execute('''
+      CREATE INDEX idx_promotor_activo 
+      ON promotores(activo) WHERE activo = 1
     ''');
   }
 
-  Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
-    if (oldVersion < 2) {
-      await db.execute('''
-        CREATE TABLE promotores (
-          id INTEGER PRIMARY KEY AUTOINCREMENT,
-          nombre TEXT NOT NULL,
-          zona TEXT NOT NULL,
-          sincronizado INTEGER DEFAULT 0,
-          fecha_creacion TEXT NOT NULL
-        )
-      ''');
-    }
-  }
-
-  // ==================== Operaciones para Registros ====================
-  Future<int> insertRegistro(Registro registro) async {
-    final db = await database;
-    return await db.insert('registros', registro.toMap());
-  }
-
-  Future<List<Registro>> getRegistrosNoSincronizados() async {
-    final db = await database;
-    final maps = await db.query(
-      'registros',
-      where: 'sincronizado = ?',
-      whereArgs: [0],
-    );
-    return List.generate(maps.length, (i) => Registro.fromMap(maps[i]));
-  }
-
-  Future<void> marcarRegistroSincronizado(int id) async {
-    final db = await database;
-    await db.update(
-      'registros',
-      {'sincronizado': 1},
-      where: 'id = ?',
-      whereArgs: [id],
-    );
-  }
-
-  // ==================== Operaciones para Promotores ====================
-  Future<int> insertPromotor(Promotor promotor) async {
-    final db = await database;
-    return await db.insert('promotores', promotor.toMap());
-  }
-
-  Future<List<Promotor>> getPromotores({String? filtroZona}) async {
-    final db = await database;
-    final maps = await db.query(
-      'promotores',
-      where: filtroZona != null && filtroZona != 'Todas'
-          ? 'zona = ?'
-          : null,
-      whereArgs: filtroZona != null && filtroZona != 'Todas'
-          ? [filtroZona]
-          : null,
-      orderBy: 'nombre ASC',
-    );
-    return maps.map((map) => Promotor.fromMap(map)).toList();
-  }
-
-  Future<List<Promotor>> getPromotoresNoSincronizados() async {
-    final db = await database;
-    final maps = await db.query(
-      'promotores',
-      where: 'sincronizado = ?',
-      whereArgs: [0],
-    );
-    return maps.map((map) => Promotor.fromMap(map)).toList();
-  }
-
-  Future<void> marcarPromotorSincronizado(int id) async {
-    final db = await database;
-    await db.update(
-      'promotores',
-      {'sincronizado': 1},
-      where: 'id = ?',
-      whereArgs: [id],
-    );
-  }
-
-  // ==================== Operaciones Generales ====================
-  Future<void> deleteAllData() async {
-    final db = await database;
-    await db.delete('registros');
-    await db.delete('promotores');
-  }
+// Métodos CRUD para cada tabla...
+// [Aquí irían los métodos para insertar/actualizar/consultar datos]
 }
