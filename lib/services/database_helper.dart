@@ -1,7 +1,7 @@
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 import '../models/promotor_model.dart';
-import '../models/asociacion_model.dart';
+import '../models/asociacion_model.dart'; //
 import '../models/usuario_model.dart';
 
 class DatabaseHelper {

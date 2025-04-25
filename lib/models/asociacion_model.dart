@@ -1,4 +1,4 @@
-class Asociacion {
+class Asociacion { //
   final String id;
   final String nombre;
   final String lider;

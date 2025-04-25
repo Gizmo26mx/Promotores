@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../models/promotor.dart';
+import '../models/promotor.dart'; //
 import '../services/database_helper.dart';
 
 class RegistrosScreen extends StatefulWidget {

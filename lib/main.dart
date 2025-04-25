@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:promotores/screens/login_screen.dart';
-import 'package:promotores/screens/registros_screen.dart';
+import 'package:promotores/screens/registros_screen.dart'; //
 import 'package:promotores/services/database_helper.dart';
 import 'package:promotores/models/usuario_model.dart';
 

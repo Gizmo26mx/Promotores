@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:promotores/models/promotor_model.dart';
+import 'package:promotores/models/promotor_model.dart'; //
 import 'package:promotores/services/database_helper.dart';
 
 class SearchScreen extends StatefulWidget {
