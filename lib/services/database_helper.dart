@@ -1,90 +1,89 @@
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
-import 'dart:typed_data';
+import '../models/promotor_model.dart';
+import '../models/asociacion_model.dart';
+import '../models/usuario_model.dart';
 
 class DatabaseHelper {
-  static const _databaseName = 'promotores_acapulco.db';
-  static const _databaseVersion = 1;
+  static final DatabaseHelper _instance = DatabaseHelper._internal();
+  factory DatabaseHelper() => _instance;
+  static Database? _db;
 
-  // Singleton pattern
-  DatabaseHelper._privateConstructor();
-  static final DatabaseHelper instance = DatabaseHelper._privateConstructor();
+  DatabaseHelper._internal();
 
-  static Database? _database;
-  Future<Database> get database async {
-    if (_database != null) return _database!;
-    _database = await _initDatabase();
-    return _database!;
+  Future<Database> get db async {
+    _db ??= await _initDb();
+    return _db!;
   }
 
-  Future<Database> _initDatabase() async {
-    final path = join(await getDatabasesPath(), _databaseName);
+  Future<Database> _initDb() async {
+    final path = join(await getDatabasesPath(), 'promotores_acapulco.db');
     return await openDatabase(
       path,
-      version: _databaseVersion,
+      version: 2,
       onCreate: _onCreate,
-      onConfigure: _onConfigure,
+      onUpgrade: _onUpgrade,
     );
   }
 
-  // Configuración de claves foráneas
-  Future<void> _onConfigure(Database db) async {
-    await db.execute('PRAGMA foreign_keys = ON');
-  }
-
-  // CREACIÓN DE TABLAS (Aquí se implementan las tablas)
   Future<void> _onCreate(Database db, int version) async {
-    // 1. Tabla de Usuarios (para login)
-    await db.execute('''
-      CREATE TABLE usuarios (
-        id TEXT PRIMARY KEY,
-        username TEXT UNIQUE NOT NULL,
-        password_hash TEXT NOT NULL,
-        rol TEXT NOT NULL CHECK (rol IN ('admin', 'validador')),
-        fecha_creacion TEXT DEFAULT (datetime('now','localtime'))
-      )
-    ''');
-
-    // 2. Tabla de Asociaciones
     await db.execute('''
       CREATE TABLE asociaciones (
         id TEXT PRIMARY KEY,
         nombre TEXT NOT NULL,
         lider TEXT NOT NULL,
-        telefono_lider TEXT NOT NULL,
-        descripcion TEXT,
-        logo BLOB,
-        fecha_registro TEXT DEFAULT (datetime('now','localtime'))
+        telefono_lider TEXT NOT NULL
       )
     ''');
 
-    // 3. Tabla de Promotores (con relación a asociaciones)
     await db.execute('''
       CREATE TABLE promotores (
-        folio TEXT PRIMARY KEY,
+        id TEXT PRIMARY KEY,
+        folio TEXT UNIQUE NOT NULL,
         nombre TEXT NOT NULL,
         asociacion_id TEXT NOT NULL,
         sector TEXT NOT NULL,
         vestimenta TEXT NOT NULL,
         foto BLOB NOT NULL,
-        activo INTEGER DEFAULT 1,
-        fecha_registro TEXT DEFAULT (datetime('now','localtime')),
-        FOREIGN KEY (asociacion_id) REFERENCES asociaciones(id) ON DELETE RESTRICT
+        FOREIGN KEY (asociacion_id) REFERENCES asociaciones(id)
       )
     ''');
 
-    // Índices para mejorar el rendimiento
     await db.execute('''
-      CREATE INDEX idx_promotor_asociacion 
-      ON promotores(asociacion_id)
-    ''');
-
-    await db.execute('''
-      CREATE INDEX idx_promotor_activo 
-      ON promotores(activo) WHERE activo = 1
+      CREATE TABLE usuarios (
+        id TEXT PRIMARY KEY,
+        email TEXT UNIQUE NOT NULL,
+        password_hash TEXT NOT NULL,
+        rol TEXT NOT NULL
+      )
     ''');
   }
 
-// Métodos CRUD para cada tabla...
-// [Aquí irían los métodos para insertar/actualizar/consultar datos]
+  Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
+    if (oldVersion < 2) {
+      await db.execute('ALTER TABLE promotores ADD COLUMN sincronizado INTEGER DEFAULT 0');
+    }
+  }
+
+  // Métodos CRUD para promotores
+  Future<int> insertPromotor(Promotor promotor) async {
+    final database = await db;
+    return await database.insert(
+      'promotores',
+      promotor.toMap(),
+      conflictAlgorithm: ConflictAlgorithm.replace,
+    );
+  }
+
+  Future<Promotor?> getPromotorByFolio(String folio) async {
+    final db = await database;
+    final maps = await db.query(
+      'promotores',
+      where: 'folio = ?',
+      whereArgs: [folio],
+    );
+    return maps.isNotEmpty ? Promotor.fromMap(maps.first) : null;
+  }
+
+// Métodos para asociaciones y usuarios...
 }
