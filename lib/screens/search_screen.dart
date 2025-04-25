@@ -43,6 +43,15 @@ class _SearchScreenState extends State<SearchScreen> {
     }
   }
 
+  Future<List<Promotor>> searchPromotores(String query) async {
+    final db = await database;
+    final results = await db.rawQuery('''
+    SELECT * FROM promotores 
+    WHERE nombre LIKE ? OR folio LIKE ?
+  ''', ['%$query%', '%$query%']);
+    return results.map((e) => Promotor.fromMap(e)).toList();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(

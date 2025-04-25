@@ -11,7 +11,7 @@ void main() async {
 
   // Inicializar la base de datos SQLite
   final dbHelper = DatabaseHelper.instance;
-  await dbHelper.initializeDatabase();
+
 
   // Cargar datos iniciales si es necesario
   await _initializeApp(dbHelper);
