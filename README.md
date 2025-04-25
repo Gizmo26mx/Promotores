@@ -1,7 +1,7 @@
-# promotores
+# Promotores
 
-A new Flutter project.
+Proyecto para la secretaría de Turismo de Acapulco  
 
-## Getting Started
+## Descripción
 
-App para validar a los promotores turisticos de Acapulco usando el folio de su credencial
+App creada para validar a los promotores turisticos de Acapulco usando el folio de su credencial
