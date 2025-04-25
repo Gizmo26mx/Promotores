@@ -10,18 +10,16 @@ import 'package:promotores/models/usuario_model.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Inicializar SQLite e insertar datos de prueba
+  // Inicializar SQLite primero
   final dbHelper = DatabaseHelper.instance;
-  await _initializeApp(dbHelper);
+  await dbHelper.initializeDatabase();
 
-  runApp(
-    MultiProvider(
-      providers: [
-        ChangeNotifierProvider(create: (_) => AuthProvider(dbHelper)),
-      ],
-      child: const MyApp(),
-    ),
+  // Opcional: mantener Firebase para futura sincronización
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
   );
+
+  runApp(MyApp());
 }
 
 Future<void> _initializeApp(DatabaseHelper dbHelper) async {
