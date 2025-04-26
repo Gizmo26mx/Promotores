@@ -1,65 +1,46 @@
-import 'dart:typed_data';
-
 class Promotor {
-  final String? id; // ID opcional
+  final int? id;
   final String folio;
   final String nombre;
-  final String asociacion;
-  final String sector;
-  final String lider;
-  final String telefonoLider;
-  final String vestimenta;
-  final Uint8List foto;
-  final bool activo;
-  final String fechaRegistro;
-  final DateTime fechaCreacion;
+  final String apellidos;
+  final List<int>? foto; // La foto sigue como bytes opcionales
+  final String numeroAsociacion; // Relacionado con 'asociaciones'
+  final String? sector;
 
+  // Constructor
   Promotor({
     this.id,
     required this.folio,
     required this.nombre,
-    required this.asociacion,
-    required this.sector,
-    required this.lider,
-    required this.telefonoLider,
-    required this.vestimenta,
-    required this.foto,
-    this.activo = true,
-    required this.fechaRegistro,
-    required this.fechaCreacion,
+    required this.apellidos,
+    this.foto,
+    required this.numeroAsociacion,
+    this.sector,
   });
 
+  // Método para convertir de Map a Promotor
   factory Promotor.fromMap(Map<String, dynamic> map) {
     return Promotor(
-      id: map['id']?.toString(),
+      id: map['id'],
       folio: map['folio'],
       nombre: map['nombre'],
-      asociacion: map['asociacion_id'],
+      apellidos: map['apellidos'],
+      foto: map['foto'] != null ? List<int>.from(map['foto']) : null, // Convertir bytes a List<int>
+      numeroAsociacion: map['numero_asociacion'],
       sector: map['sector'],
-      lider: map['lider'],
-      telefonoLider: map['telefono_lider'] as String,
-      vestimenta: map['vestimenta'],
-      foto: map['foto'],
-      activo: map['activo'] == 1,
-      fechaRegistro: map['fecha_registro'],
-      fechaCreacion: map['fecha_creacion'],
     );
   }
 
+  // Método para convertir Promotor a Map
   Map<String, dynamic> toMap() {
     return {
       'id': id,
       'folio': folio,
       'nombre': nombre,
-      'asociacion_id': asociacion,
+      'apellidos': apellidos,
+      'foto': foto, // Guardamos la foto como List<int>
+      'numero_asociacion': numeroAsociacion,
       'sector': sector,
-      'lider': lider,
-      'telefono_lider': telefonoLider,
-      'vestimenta': vestimenta,
-      'foto': foto,
-      'activo': activo ? 1 : 0,
-      'fecha_registro': fechaRegistro,
-      'fecha_creacion': fechaCreacion,
     };
   }
 }

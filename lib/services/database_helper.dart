@@ -1,5 +1,4 @@
 import 'dart:io';
-import 'package:flutter/services.dart'; // 👈 para leer el archivo de assets
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:path_provider/path_provider.dart';
@@ -27,30 +26,57 @@ class DatabaseHelper {
   Future<Database> _initDatabase() async {
     Directory documentsDirectory = await getApplicationDocumentsDirectory();
     String path = join(documentsDirectory.path, _dbName);
-
-    // Verificar si el archivo de base de datos ya existe
-    bool exists = await databaseExists(path);
-
-    if (!exists) {
-      // Si no existe, copiarlo desde assets
-      try {
-        ByteData data = await rootBundle.load('assets/database/promotores.db');
-        List<int> bytes = data.buffer.asUint8List(data.offsetInBytes, data.lengthInBytes);
-        await File(path).writeAsBytes(bytes, flush: true);
-        print('Base de datos copiada desde assets');
-      } catch (e) {
-        print('Error copiando la base de datos: $e');
-      }
-    } else {
-      print('Base de datos ya existe en el dispositivo');
-    }
-
-    // Abrir la base de datos
-    return await openDatabase(path, version: _dbVersion);
+    return await openDatabase(
+      path,
+      version: _dbVersion,
+      onCreate: _onCreate,
+    );
   }
 
-  // --- Métodos de acceso como ya tenías ---
+  Future<void> _onCreate(Database db, int version) async {
+    // Tabla usuarios
+    await db.execute('''
+      CREATE TABLE usuarios (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        username TEXT NOT NULL,
+        password TEXT NOT NULL
+      )
+    ''');
 
+    // Tabla asociaciones
+    await db.execute('''
+      CREATE TABLE asociaciones (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        numero_asociacion TEXT NOT NULL UNIQUE,
+        nombre TEXT NOT NULL,
+        lider TEXT NOT NULL,
+        telefono_lider TEXT NOT NULL,
+        vestimenta TEXT NOT NULL
+      )
+    ''');
+
+    // Tabla promotores
+    await db.execute('''
+      CREATE TABLE promotores (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        folio TEXT NOT NULL UNIQUE,
+        nombre TEXT NOT NULL,
+        apellidos TEXT NOT NULL,
+        foto BLOB,
+        numero_asociacion TEXT NOT NULL,
+        sector TEXT,
+        FOREIGN KEY (numero_asociacion) REFERENCES asociaciones (numero_asociacion)
+      )
+    ''');
+
+    // Insertar usuario de prueba
+    await db.insert('usuarios', {
+      'username': 'admin',
+      'password': '1234',
+    });
+  }
+
+  // Métodos usuarios
   Future<Map<String, dynamic>?> getUser(String username, String password) async {
     final db = await database;
     final result = await db.query(
@@ -61,15 +87,9 @@ class DatabaseHelper {
     return result.isNotEmpty ? result.first : null;
   }
 
-  Future<Map<String, dynamic>?> getUserByUsername(String username) async {
+  Future<int> insertUsuario(Map<String, dynamic> usuario) async {
     final db = await database;
-    final result = await db.query(
-      'usuarios',
-      where: 'username = ?',
-      whereArgs: [username],
-      limit: 1,
-    );
-    return result.isNotEmpty ? result.first : null;
+    return await db.insert('usuarios', usuario);
   }
 
   Future<int> updatePassword(String username, String newPassword) async {
@@ -82,14 +102,26 @@ class DatabaseHelper {
     );
   }
 
-  Future<int> insertUsuario(Map<String, dynamic> usuario) async {
+  // Métodos asociaciones
+  Future<int> insertAsociacion(Map<String, dynamic> asociacion) async {
     final db = await database;
-    return await db.insert('usuarios', usuario);
+    return await db.insert('asociaciones', asociacion);
+  }
+
+  Future<List<Map<String, dynamic>>> getAsociaciones() async {
+    final db = await database;
+    return await db.query('asociaciones');
+  }
+
+  // Métodos promotores
+  Future<int> insertPromotor(Map<String, dynamic> promotor) async {
+    final db = await database;
+    return await db.insert('promotores', promotor);
   }
 
   Future<Promotor?> getPromotorByFolio(String folio) async {
     final db = await database;
-    final List<Map<String, dynamic>> result = await db.query(
+    final result = await db.query(
       'promotores',
       where: 'folio = ?',
       whereArgs: [folio],
@@ -102,20 +134,7 @@ class DatabaseHelper {
 
   Future<List<Promotor>> getAllPromotores() async {
     final db = await database;
-    final maps = await db.query('promotores');
-    return List.generate(maps.length, (i) => Promotor.fromMap(maps[i]));
-  }
-
-  Future<int> insertRegistro(Map<String, dynamic> registro) async {
-    final db = await database;
-    return await db.insert('registros', registro);
-  }
-
-  Future<List<Promotor>> getPromotores() async {
-    final db = await database;
-    final List<Map<String, dynamic>> maps = await db.query('promotores');
-    return List.generate(maps.length, (i) {
-      return Promotor.fromMap(maps[i]);
-    });
+    final result = await db.query('promotores');
+    return result.map((e) => Promotor.fromMap(e)).toList();
   }
 }

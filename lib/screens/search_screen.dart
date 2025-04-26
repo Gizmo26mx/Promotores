@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:promotores/models/promotor_model.dart'; //
+import 'package:promotores/models/promotor_model.dart';
 import 'package:promotores/services/database_helper.dart';
 
 class SearchScreen extends StatefulWidget {
@@ -87,20 +87,41 @@ class _SearchScreenState extends State<SearchScreen> {
           children: [
             CircleAvatar(
               radius: 50,
-              backgroundImage: MemoryImage(promotor.foto),
+              backgroundImage: promotor.foto != null
+                  ? MemoryImage(promotor.foto!)
+                  : const AssetImage('assets/images/avatar_default.png') as ImageProvider,
             ),
             const SizedBox(height: 16),
             Text(
-              promotor.nombre,
+              '${promotor.nombre} ${promotor.apellidos}',
               style: Theme.of(context).textTheme.titleLarge,
             ),
             const Divider(),
             _buildInfoRow('Folio', promotor.folio),
-            _buildInfoRow('Asociación', promotor.asociacion),
+            _buildInfoRow('Asociación', promotor.numeroAsociacion.toString()),
             _buildInfoRow('Sector', promotor.sector),
-            _buildInfoRow('Líder', promotor.lider),
-            _buildInfoRow('Teléfono Líder', promotor.telefonoLider),
             _buildInfoRow('Vestimenta', promotor.vestimenta),
+            FutureBuilder<Map<String, dynamic>?>(
+              future: DatabaseHelper.instance.getAsociacionByNumero(promotor.numeroAsociacion),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const CircularProgressIndicator();
+                } else if (snapshot.hasError) {
+                  return Text('Error: ${snapshot.error}');
+                } else if (snapshot.hasData) {
+                  var asociacion = snapshot.data;
+                  return Column(
+                    children: [
+                      const Divider(),
+                      _buildInfoRow('Líder', asociacion?['lider'] ?? 'No disponible'),
+                      _buildInfoRow('Teléfono Líder', asociacion?['telefono_lider'] ?? 'No disponible'),
+                    ],
+                  );
+                } else {
+                  return const Text('No se encontró la asociación');
+                }
+              },
+            ),
           ],
         ),
       ),

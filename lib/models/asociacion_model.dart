@@ -1,6 +1,6 @@
 import 'dart:typed_data';
 
-class Asociacion { //
+class Asociacion {
   final String id;
   final String nombre;
   final String lider;
@@ -19,18 +19,20 @@ class Asociacion { //
     required this.fechaRegistro,
   });
 
+  // Convertir un Map a un objeto Asociacion
   factory Asociacion.fromMap(Map<String, dynamic> map) {
     return Asociacion(
-      id: map['id'],
+      id: map['id'],  // Asumiendo que el campo 'id' en la DB es un String
       nombre: map['nombre'],
       lider: map['lider'],
       telefonoLider: map['telefono_lider'],
       descripcion: map['descripcion'],
-      logo: map['logo'],
+      logo: map['logo'] != null ? Uint8List.fromList(List<int>.from(map['logo'])) : null, // Convertir bytes de logo
       fechaRegistro: map['fecha_registro'],
     );
   }
 
+  // Convertir un objeto Asociacion a Map
   Map<String, dynamic> toMap() {
     return {
       'id': id,
@@ -39,6 +41,7 @@ class Asociacion { //
       'telefono_lider': telefonoLider,
       'descripcion': descripcion,
       'logo': logo,
+      'fecha_registro': fechaRegistro,
     };
   }
 }

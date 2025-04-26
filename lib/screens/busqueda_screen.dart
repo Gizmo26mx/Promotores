@@ -16,8 +16,11 @@ class _BusquedaScreenState extends State<BusquedaScreen> {
 
   Future<void> _buscarPromotor() async {
     setState(() => _isLoading = true);
+
+    // Buscar el promotor por el folio
     final promotor = await DatabaseHelper.instance
         .getPromotorByFolio(_folioController.text.trim());
+
     setState(() {
       _promotor = promotor;
       _isLoading = false;
@@ -60,17 +63,42 @@ class _BusquedaScreenState extends State<BusquedaScreen> {
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
+            // Si el promotor tiene foto, mostramos una imagen, de lo contrario, mostramos un avatar por defecto
             CircleAvatar(
               radius: 50,
-              backgroundImage: MemoryImage(promotor.foto),
+              backgroundImage: promotor.foto != null
+                  ? MemoryImage(promotor.foto!)
+                  : const AssetImage('assets/images/avatar_default.png') as ImageProvider,
             ),
             const SizedBox(height: 16),
-            Text(promotor.nombre, style: Theme.of(context).textTheme.titleLarge),
+            // Mostramos los detalles del promotor
+            Text('${promotor.nombre} ${promotor.apellidos}', style: Theme.of(context).textTheme.titleLarge),
             const SizedBox(height: 8),
-            Text('Asociación: ${promotor.asociacion}'),
+            Text('Número de Asociación: ${promotor.numeroAsociacion}'),
             Text('Sector: ${promotor.sector}'),
-            Text('Líder: ${promotor.lider}'),
-            Text('Teléfono líder: ${promotor.telefonoLider}'),
+            // Añadimos la información de la asociación (nombre del líder, teléfono líder, etc.)
+            FutureBuilder<Map<String, dynamic>?>(
+              future: DatabaseHelper.instance.getAsociacionByNumero(promotor.numeroAsociacion),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const CircularProgressIndicator();
+                } else if (snapshot.hasError) {
+                  return Text('Error: ${snapshot.error}');
+                } else if (snapshot.hasData) {
+                  var asociacion = snapshot.data;
+                  return Column(
+                    children: [
+                      Text('Asociación: ${asociacion?['nombre']}'),
+                      Text('Líder: ${asociacion?['lider']}'),
+                      Text('Teléfono líder: ${asociacion?['telefono_lider']}'),
+                    ],
+                  );
+                } else {
+                  return const Text('No se encontró la asociación');
+                }
+              },
+            ),
+            const SizedBox(height: 8),
             Text('Vestimenta: ${promotor.vestimenta}'),
           ],
         ),

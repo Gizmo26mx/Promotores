@@ -63,6 +63,17 @@ class _RegistrosScreenState extends State<RegistrosScreen> {
     });
   }
 
+  Future<Map<String, String>?> _getAsociacionInfo(int numeroAsociacion) async {
+    final asociacion = await DatabaseHelper.instance.getAsociacionByNumero(numeroAsociacion);
+    if (asociacion != null) {
+      return {
+        'lider': asociacion['lider'] ?? 'No disponible',
+        'telefono_lider': asociacion['telefono_lider'] ?? 'No disponible',
+      };
+    }
+    return null;
+  }
+
   Widget _buildItem(Promotor promotor) {
     return Card(
       elevation: 2,
@@ -79,10 +90,29 @@ class _RegistrosScreenState extends State<RegistrosScreen> {
         subtitle: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-
             Text(
               'Registrado: ${promotor.fechaCreacion.day}/${promotor.fechaCreacion.month}/${promotor.fechaCreacion.year}',
               style: const TextStyle(fontSize: 12),
+            ),
+            FutureBuilder<Map<String, String>?>(
+              future: _getAsociacionInfo(promotor.numeroAsociacion),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const CircularProgressIndicator();
+                } else if (snapshot.hasError) {
+                  return Text('Error: ${snapshot.error}');
+                } else if (snapshot.hasData) {
+                  final asociacionInfo = snapshot.data;
+                  return Column(
+                    children: [
+                      Text('Líder: ${asociacionInfo?['lider']}'),
+                      Text('Teléfono Líder: ${asociacionInfo?['telefono_lider']}'),
+                    ],
+                  );
+                } else {
+                  return const Text('Asociación no disponible');
+                }
+              },
             ),
           ],
         ),

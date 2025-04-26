@@ -13,7 +13,7 @@ class _PromotorScreenState extends State<PromotorScreen> {
   Promotor? _promotor;
   String? _mensajeError;
 
-  void _buscarPromotor() async {
+  Future<void> _buscarPromotor() async {
     final folio = _folioController.text.trim();
     if (folio.isEmpty) return;
 
@@ -36,6 +36,17 @@ class _PromotorScreenState extends State<PromotorScreen> {
       context,
       MaterialPageRoute(builder: (context) => LoginScreen()),
     );
+  }
+
+  Future<Map<String, String>?> _getAsociacionInfo(int numeroAsociacion) async {
+    final asociacion = await DatabaseHelper.instance.getAsociacionByNumero(numeroAsociacion);
+    if (asociacion != null) {
+      return {
+        'lider': asociacion['lider'] ?? 'No disponible',
+        'telefono_lider': asociacion['telefono_lider'] ?? 'No disponible',
+      };
+    }
+    return null;
   }
 
   @override
@@ -81,10 +92,30 @@ class _PromotorScreenState extends State<PromotorScreen> {
                       Text('Sector: ${_promotor!.sector}'),
                       Text('Vestimenta: ${_promotor!.vestimenta}'),
                       Text('Fecha de Registro: ${_promotor!.fechaRegistro}'),
+                      FutureBuilder<Map<String, String>?>(
+                        future: _getAsociacionInfo(_promotor!.numeroAsociacion),
+                        builder: (context, snapshot) {
+                          if (snapshot.connectionState == ConnectionState.waiting) {
+                            return const CircularProgressIndicator();
+                          } else if (snapshot.hasError) {
+                            return Text('Error: ${snapshot.error}');
+                          } else if (snapshot.hasData) {
+                            final asociacionInfo = snapshot.data;
+                            return Column(
+                              children: [
+                                Text('Líder: ${asociacionInfo?['lider']}'),
+                                Text('Teléfono Líder: ${asociacionInfo?['telefono_lider']}'),
+                              ],
+                            );
+                          } else {
+                            return const Text('Asociación no disponible');
+                          }
+                        },
+                      ),
                     ],
                   ),
                 ),
-              )
+              ),
           ],
         ),
       ),
