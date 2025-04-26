@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:promotores/models/promotor_model.dart';
 import 'package:promotores/services/database_helper.dart';
 import 'package:promotores/screens/promotor_screen.dart'; // Importa la pantalla de detalle
+import 'dart:typed_data';
 
 class SearchScreen extends StatefulWidget {
   const SearchScreen({Key? key}) : super(key: key);

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:promotores/services/database_helper.dart';
 import 'promotor_screen.dart';
-
+import 'package:promotores/models/promotor_model.dart';  // Asegúrate de importar el modelo Promotor
 
 class LoginScreen extends StatefulWidget {
   @override
@@ -23,10 +23,20 @@ class _LoginScreenState extends State<LoginScreen> {
       );
 
       if (user != null) {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => PromotorScreen()),
-        );
+        // Obtener el promotor correspondiente
+        final promotor = await DatabaseHelper.instance.getPromotorByFolio(user['folio']);
+
+        if (promotor != null) {
+          // Navegar a PromotorScreen con el promotor como parámetro
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => PromotorScreen(promotor: promotor)),
+          );
+        } else {
+          setState(() {
+            _errorMessage = 'Promotor no encontrado';
+          });
+        }
       } else {
         setState(() {
           _errorMessage = 'Usuario o contraseña incorrectos';

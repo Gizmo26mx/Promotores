@@ -168,5 +168,4 @@ class DatabaseHelper {
     );
     return result.isNotEmpty ? result.first : null;
   }
-
 }

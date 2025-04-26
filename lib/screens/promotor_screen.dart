@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:promotores/models/promotor_model.dart';
 import 'package:promotores/services/database_helper.dart';
+import 'dart:typed_data';
 
 class PromotorScreen extends StatelessWidget {
   final Promotor promotor;
