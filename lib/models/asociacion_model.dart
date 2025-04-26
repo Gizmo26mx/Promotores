@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 class Asociacion { //
   final String id;
   final String nombre;

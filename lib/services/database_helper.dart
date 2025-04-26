@@ -85,4 +85,18 @@ class DatabaseHelper {
     if (result.isNotEmpty) return result.first;
     return null;
   }
+
+  Future<Map<String, dynamic>?> getPromotorByFolio(String folio) async {
+    final db = await database;
+    final res = await db.query(
+      'promotores',
+      where: 'folio = ?',
+      whereArgs: [folio],
+    );
+    if (res.isNotEmpty) {
+      return res.first;
+    } else {
+      return null;
+    }
+  }
 }
