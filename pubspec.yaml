@@ -31,3 +31,4 @@ flutter:
 
   assets:
     - assets/icons/icon.png  # Assets movidos a la sección flutter
+    - assets/database/promotores.db
