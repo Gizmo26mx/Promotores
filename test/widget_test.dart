@@ -7,14 +7,14 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:promotores/main.dart';
+//import 'package:promotores/main.dart';
 import 'package:promotores/widgets/my_widget.dart';
 
 
 void main() {
   testWidgets('Test', (WidgetTester tester) async {
     // Build our app and trigger a frame.
-    await tester.pumpWidget(MyWidget(text: 'Hola')); // Eliminar `const`
+    await tester.pumpWidget(MyWidget(text: 'Hola'));
 
     // Verify that our counter starts at 0.
     expect(find.text('0'), findsOneWidget);

@@ -57,9 +57,8 @@ class _RegistrosScreenState extends State<RegistrosScreen> {
     final query = _searchController.text.toLowerCase();
     setState(() {
       _promotoresFiltrados = _promotores.where((promotor) {
-        final cumpleZona = _filtroZona == 'Todas' || promotor.zona == _filtroZona;
         final cumpleBusqueda = promotor.nombre.toLowerCase().contains(query);
-        return cumpleZona && cumpleBusqueda;
+        return cumpleBusqueda;
       }).toList();
     });
   }
@@ -80,16 +79,12 @@ class _RegistrosScreenState extends State<RegistrosScreen> {
         subtitle: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Zona: ${promotor.zona}'),
+
             Text(
               'Registrado: ${promotor.fechaCreacion.day}/${promotor.fechaCreacion.month}/${promotor.fechaCreacion.year}',
               style: const TextStyle(fontSize: 12),
             ),
           ],
-        ),
-        trailing: Icon(
-          promotor.sincronizado ? Icons.cloud_done : Icons.cloud_off,
-          color: promotor.sincronizado ? Colors.green : Colors.orange,
         ),
       ),
     );

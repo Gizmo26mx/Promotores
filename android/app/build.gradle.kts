@@ -1,66 +1,54 @@
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+
 plugins {
     id("com.android.application")
-    id("kotlin-android")
-    id("dev.flutter.flutter-gradle-plugin")
-    //id("com.google.gms.google-services") // Añade este  plugin para Firebase
+    id("org.jetbrains.kotlin.android")
 }
 
 android {
-    namespace = "com.example.promotores"
-    compileSdk = flutter.compileSdkVersion.toInteger() // Asegúrate de convertirlo a Integer
-    ndkVersion = flutter.ndkVersion
-
-    compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
-    }
-
-    kotlinOptions {
-        jvmTarget = JavaVersion.VERSION_11.toString()
-    }
+    compileSdk = 33
 
     defaultConfig {
-        applicationId = "com.example.promotores"
-        minSdk = flutter.minSdkVersion.toInteger() // Convertir a Integer
-        targetSdk = flutter.targetSdkVersion.toInteger() // Convertir a Integer
-        versionCode = flutter.versionCode.toInteger() // Convertir a Integer
-        versionName = flutter.versionName
-        multiDexEnabled = true // Recomendado para Firebase
+        applicationId = "com.promotores.app"
+        minSdk = 21
+        targetSdk = 33
+        versionCode = 1
+        versionName = "1.0"
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
     buildTypes {
-        release {
-            signingConfig = signingConfigs.getByName("debug")
-            // Opcional: configuración para reducción de código
-            minifyEnabled true
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        getByName("release") {
+            isMinifyEnabled = false // You can set it to true if you want to enable minification
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro"
+            )
         }
     }
 
-    // Habilitar ViewBinding
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_1_8
+        targetCompatibility = JavaVersion.VERSION_1_8
+    }
+
+    kotlinOptions {
+        jvmTarget = "1.8"
+    }
+
     buildFeatures {
         viewBinding = true
     }
-
-    buildscript {
-        dependencies {
-           // classpath("com.google.gms:google-services:4.3.15")
-            // ... otras dependencias
-        }
-    }
-
-}
-
-flutter {
-    source = "../.."
 }
 
 dependencies {
-    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.8.22") // Versión compatible
-    implementation(platform("com.google.firebase:firebase-bom:32.3.1")) // Firebase BoM
-    implementation("com.google.firebase:firebase-analytics-ktx") // Analytics
-    implementation("com.google.firebase:firebase-firestore-ktx") // Firestore
-    implementation("com.google.firebase:firebase-auth-ktx") // Autenticación
-    implementation("com.google.firebase:firebase-storage-ktx") // Storage (si necesitas fotos)
-    implementation("androidx.multidex:multidex:2.0.1") // Necesario para minSdk < 21
+    implementation("androidx.core:core-ktx:1.9.0")
+    implementation("androidx.appcompat:appcompat:1.5.1")
+    implementation("com.google.android.material:material:1.6.1")
+    implementation("androidx.constraintlayout:constraintlayout:2.1.4")
+    implementation("org.jetbrains.kotlin:kotlin-stdlib:1.7.10")
+
+    testImplementation("junit:junit:4.13.2")
+    androidTestImplementation("androidx.test.ext:junit:1.1.3")
+    androidTestImplementation("androidx.test.espresso:espresso-core:3.4.0")
 }

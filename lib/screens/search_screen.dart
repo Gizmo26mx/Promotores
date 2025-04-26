@@ -43,34 +43,6 @@ class _SearchScreenState extends State<SearchScreen> {
     }
   }
 
-  Future<void> _searchPromotor() async {
-    final folio = _folioController.text.trim();
-    if (folio.isEmpty) {
-      setState(() => _searchError = 'Ingrese un folio válido');
-      return;
-    }
-
-    setState(() {
-      _isLoading = true;
-      _promotor = null;
-      _searchError = '';
-    });
-
-    try {
-      final promotor = await DatabaseHelper.instance.getPromotorByFolio(folio);
-
-      if (promotor != null) {
-        setState(() => _promotor = promotor);
-      } else {
-        setState(() => _searchError = 'Promotor no encontrado');
-      }
-    } catch (e) {
-      setState(() => _searchError = 'Error en la búsqueda: ${e.toString()}');
-    } finally {
-      setState(() => _isLoading = false);
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -120,7 +92,7 @@ class _SearchScreenState extends State<SearchScreen> {
             const SizedBox(height: 16),
             Text(
               promotor.nombre,
-              style: Theme.of(context).textTheme.headline6,
+              style: Theme.of(context).textTheme.titleLarge,
             ),
             const Divider(),
             _buildInfoRow('Folio', promotor.folio),

@@ -54,4 +54,14 @@ class AuthService {
       return false;
     }
   }
+
+  Future<void> registrarUsuario(Map<String, dynamic> usuario) async {
+    try {
+      final result = await DatabaseHelper.instance.insertUsuario(usuario);
+      // Manejo del resultado, por ejemplo, si se inserta correctamente
+    } catch (e) {
+      // Manejo de errores
+      print('Error al insertar usuario: $e');
+    }
+  }
 }

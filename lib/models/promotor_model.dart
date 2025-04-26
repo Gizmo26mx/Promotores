@@ -12,6 +12,7 @@ class Promotor {
   final Uint8List foto;
   final bool activo;
   final String fechaRegistro;
+  final DateTime fechaCreacion;
 
   Promotor({
     this.id,
@@ -25,6 +26,7 @@ class Promotor {
     required this.foto,
     this.activo = true,
     required this.fechaRegistro,
+    required this.fechaCreacion,
   });
 
   factory Promotor.fromMap(Map<String, dynamic> map) {
@@ -40,6 +42,7 @@ class Promotor {
       foto: map['foto'],
       activo: map['activo'] == 1,
       fechaRegistro: map['fecha_registro'],
+      fechaCreacion: map['fecha_creacion'],
     );
   }
 
@@ -56,6 +59,7 @@ class Promotor {
       'foto': foto,
       'activo': activo ? 1 : 0,
       'fecha_registro': fechaRegistro,
+      'fecha_creacion': fechaCreacion,
     };
   }
 }
