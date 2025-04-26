@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../services/database_helper.dart';
-import '../models/promotor_model.dart';
+import 'package:promotores/models/promotor_model.dart';
 
 class BusquedaScreen extends StatefulWidget {
   const BusquedaScreen({Key? key}) : super(key: key);
@@ -65,7 +65,7 @@ class _BusquedaScreenState extends State<BusquedaScreen> {
               backgroundImage: MemoryImage(promotor.foto),
             ),
             const SizedBox(height: 16),
-            Text(promotor.nombre, style: Theme.of(context).textTheme.headline6),
+            Text(promotor.nombre, style: Theme.of(context).textTheme.titleLarge),
             const SizedBox(height: 8),
             Text('Asociación: ${promotor.asociacion}'),
             Text('Sector: ${promotor.sector}'),

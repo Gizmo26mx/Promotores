@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../db/database_helper.dart';
+import 'package:promotores/services/database_helper.dart';
 import 'login_screen.dart';
 
 class PromotorScreen extends StatefulWidget {
@@ -16,11 +16,19 @@ class _PromotorScreenState extends State<PromotorScreen> {
     final folio = _folioController.text.trim();
     if (folio.isEmpty) return;
 
-    final result = await DatabaseHelper.instance.getPromotorByNumero(folio);
-    setState(() {
-      _promotor = result;
-      _mensajeError = result == null ? 'No se encontró promotor' : null;
-    });
+    try {
+      final result = await DatabaseHelper.instance.getPromotorByNumero(folio);
+
+      setState(() {
+        _promotor = result;
+        _mensajeError = result == null ? 'No se encontró promotor' : null;
+      });
+    } catch (e) {
+      setState(() {
+        _mensajeError = 'Error al buscar promotor';
+      });
+      debugPrint('Error al buscar promotor: $e');
+    }
   }
 
   void _cerrarSesion() {

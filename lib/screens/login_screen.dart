@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../db/database_helper.dart';
+import 'package:promotores/services/database_helper.dart';
 import 'promotor_screen.dart';
 
 class LoginScreen extends StatefulWidget {
