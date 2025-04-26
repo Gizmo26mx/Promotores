@@ -107,5 +107,24 @@ class DatabaseHelper {
     return List.generate(maps.length, (i) => Promotor.fromMap(maps[i]));
   }
 
+    Future<Map<String, dynamic>?> getUserByUsername(String username) async {
+    final db = await database;
+    final result = await db.query(
+      'usuarios',
+      where: 'username = ?',
+      whereArgs: [username],
+      limit: 1,
+    );
+    return result.isNotEmpty ? result.first : null;
+  }
 
+  Future<int> updatePassword(String username, String newPassword) async {
+    final db = await database;
+    return await db.update(
+      'usuarios',
+      {'password': newPassword},
+      where: 'username = ?',
+      whereArgs: [username],
+    );
+  }
 }
