@@ -29,7 +29,7 @@ class _SearchScreenState extends State<SearchScreen> {
     });
 
     try {
-      final promotor = await DatabaseHelper().getPromotorByFolio(folio);
+      final promotor = await DatabaseHelper.instance.getPromotorByFolio(folio);
 
       if (promotor != null) {
         setState(() => _promotor = promotor);
@@ -43,13 +43,32 @@ class _SearchScreenState extends State<SearchScreen> {
     }
   }
 
-  Future<List<Promotor>> searchPromotores(String query) async {
-    final db = await database;
-    final results = await db.rawQuery('''
-    SELECT * FROM promotores 
-    WHERE nombre LIKE ? OR folio LIKE ?
-  ''', ['%$query%', '%$query%']);
-    return results.map((e) => Promotor.fromMap(e)).toList();
+  Future<void> _searchPromotor() async {
+    final folio = _folioController.text.trim();
+    if (folio.isEmpty) {
+      setState(() => _searchError = 'Ingrese un folio válido');
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+      _promotor = null;
+      _searchError = '';
+    });
+
+    try {
+      final promotor = await DatabaseHelper.instance.getPromotorByFolio(folio);
+
+      if (promotor != null) {
+        setState(() => _promotor = promotor);
+      } else {
+        setState(() => _searchError = 'Promotor no encontrado');
+      }
+    } catch (e) {
+      setState(() => _searchError = 'Error en la búsqueda: ${e.toString()}');
+    } finally {
+      setState(() => _isLoading = false);
+    }
   }
 
   @override

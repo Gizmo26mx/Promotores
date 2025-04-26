@@ -1,7 +1,8 @@
 import 'dart:io';
-import 'dart:typed_data';
+import 'package:flutter/services.dart';
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
+import 'dart:typed_data';
 import 'package:path_provider/path_provider.dart';
 import 'package:promotores/models/promotor_model.dart';
 
@@ -121,7 +122,7 @@ class DatabaseHelper {
   // Promotores
   Future<Promotor?> getPromotorByFolio(String folio) async {
     final db = await database;
-    final result = await db.query(
+    final List<Map<String, dynamic>> result = await db.query(
       'promotores',
       where: 'folio = ?',
       whereArgs: [folio],
