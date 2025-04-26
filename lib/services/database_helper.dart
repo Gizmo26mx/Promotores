@@ -1,20 +1,16 @@
 import 'dart:io';
+import 'dart:typed_data';
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:promotores/models/promotor_model.dart';
-import 'package:promotores/models/asociacion_model.dart';
-import 'package:promotores/models/usuario_model.dart';
-
 
 class DatabaseHelper {
   static final _dbName = 'promotores.db';
   static final _dbVersion = 1;
-  static final _tableName = 'usuarios';
-  static final _promotoresTable = 'promotores';
 
-  DatabaseHelper._privateConstructor();
-  static final DatabaseHelper instance = DatabaseHelper._privateConstructor();
+  static final DatabaseHelper instance = DatabaseHelper._internal();
+  DatabaseHelper._internal();
 
   static Database? _database;
 
@@ -39,75 +35,69 @@ class DatabaseHelper {
   }
 
   Future<void> _onCreate(Database db, int version) async {
+    // Usuarios
     await db.execute('''
-    CREATE TABLE $_promotoresTable (
-      folio TEXT PRIMARY KEY,
-      nombre TEXT NOT NULL,
-      asociacion TEXT NOT NULL,
-      sector TEXT NOT NULL,
-      lider TEXT NOT NULL,
-      telefono_lider TEXT NOT NULL,
-      vestimenta TEXT NOT NULL,
-      foto BLOB NOT NULL
-    )
-  ''');
+      CREATE TABLE usuarios (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        username TEXT NOT NULL,
+        password TEXT NOT NULL
+      )
+    ''');
 
-    // Datos de prueba (opcional)
-    await db.insert(_promotoresTable, {
-      'folio': 'FOLIO001',
-      'nombre': 'Juan Pérez',
-      'asociacion': 'Asociación Turística',
-      'sector': 'Zona Dorada',
-      'lider': 'María Gómez',
-      'telefono_lider': '7441234567',
-      'vestimenta': 'Camisa blanca',
-      'foto': Uint8List(0) // Foto vacía para prueba
+    // Asociaciones
+    await db.execute('''
+      CREATE TABLE asociaciones (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        nombre TEXT NOT NULL
+      )
+    ''');
+
+    // Promotores
+    await db.execute('''
+      CREATE TABLE promotores (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        folio TEXT NOT NULL UNIQUE,
+        nombre TEXT NOT NULL,
+        asociacion_id INTEGER,
+        sector TEXT,
+        vestimenta TEXT,
+        foto BLOB,
+        activo INTEGER NOT NULL DEFAULT 1,
+        fecha_registro TEXT,
+        FOREIGN KEY (asociacion_id) REFERENCES asociaciones(id)
+      )
+    ''');
+
+    // Registros de validación
+    await db.execute('''
+      CREATE TABLE registros (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        promotor_id INTEGER NOT NULL,
+        fecha TEXT NOT NULL,
+        observaciones TEXT,
+        FOREIGN KEY (promotor_id) REFERENCES promotores(id)
+      )
+    ''');
+
+    // Usuario de prueba
+    await db.insert('usuarios', {
+      'username': 'admin',
+      'password': '1234',
     });
   }
 
+  // Autenticación
   Future<Map<String, dynamic>?> getUser(String username, String password) async {
-    Database db = await instance.database;
-    List<Map<String, dynamic>> result = await db.query(
-      _tableName,
+    final db = await database;
+    final result = await db.query(
+      'usuarios',
       where: 'username = ? AND password = ?',
       whereArgs: [username, password],
     );
-    if (result.isNotEmpty) return result.first;
-    return null;
+    return result.isNotEmpty ? result.first : null;
   }
 
-  Future<Map<String, dynamic>?> getPromotorByNumero(String numero) async {
-    Database db = await instance.database;
-    List<Map<String, dynamic>> result = await db.query(
-      _promotoresTable,
-      where: 'numero_promotor = ?',
-      whereArgs: [numero],
-    );
-    if (result.isNotEmpty) return result.first;
-    return null;
-  }
-
-  Future<Promotor?> getPromotorByFolio(String folio) async {
-    final db = await database;
-    final maps = await db.query(
-      _promotoresTable,
-      where: 'folio = ?',
-      whereArgs: [folio],
-    );
-
-    if (maps.isNotEmpty) {
-      return Promotor.fromMap(maps.first);
-    }
-    return null;
-  }
-
-  Future<List<Promotor>> getAllPromotores() async {
-    final db = await database;
-    final maps = await db.query('promotores');
-    return List.generate(maps.length, (i) => Promotor.fromMap(maps[i]));
-  }
-
-    Future<Map<String, dynamic>?> getUserByUsername(String username) async {
+  Future<Map<String, dynamic>?> getUserByUsername(String username) async {
     final db = await database;
     final result = await db.query(
       'usuarios',
@@ -127,4 +117,40 @@ class DatabaseHelper {
       whereArgs: [username],
     );
   }
+
+  // Promotores
+  Future<Promotor?> getPromotorByFolio(String folio) async {
+    final db = await database;
+    final result = await db.query(
+      'promotores',
+      where: 'folio = ?',
+      whereArgs: [folio],
+    );
+    if (result.isNotEmpty) {
+      return Promotor.fromMap(result.first);
+    }
+    return null;
+  }
+
+  Future<List<Promotor>> getAllPromotores() async {
+    final db = await database;
+    final maps = await db.query('promotores');
+    return List.generate(maps.length, (i) => Promotor.fromMap(maps[i]));
+  }
+
+  // Registros de validación
+  Future<int> insertRegistro(Map<String, dynamic> registro) async {
+    final db = await database;
+    return await db.insert('registros', registro);
+  }
+
+  Future<List<Promotor>> getPromotores() async {
+    final db = await database; // Asegúrate que este getter exista también
+    final List<Map<String, dynamic>> maps = await db.query('promotores');
+
+    return List.generate(maps.length, (i) {
+      return Promotor.fromMap(maps[i]); // Asegúrate de tener este metodo en el modelo
+    });
+  }
+
 }

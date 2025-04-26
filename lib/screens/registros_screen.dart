@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../models/promotor.dart'; //
-import '../services/database_helper.dart';
+import '../models/promotor_model.dart';
+import 'package:promotores/services/database_helper.dart';
 
 class RegistrosScreen extends StatefulWidget {
   const RegistrosScreen({super.key});
@@ -66,31 +66,32 @@ class _RegistrosScreenState extends State<RegistrosScreen> {
 
   Widget _buildItem(Promotor promotor) {
     return Card(
-        elevation: 2,
-        margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-    child: ListTile(
-    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-    leading: CircleAvatar(
-    child: Text(promotor.nombre.substring(0, 1)),
-    title: Text(
-    promotor.nombre,
-    style: const TextStyle(fontWeight: FontWeight.bold),
-    ),
-    subtitle: Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-    Text('Zona: ${promotor.zona}'),
-    Text(
-    'Registrado: ${promotor.fechaCreacion.day}/${promotor.fechaCreacion.month}/${promotor.fechaCreacion.year}',
-    style: const TextStyle(fontSize: 12),
-    ),
-    ],
-    ),
-    trailing: Icon(
-    promotor.sincronizado ? Icons.cloud_done : Icons.cloud_off,
-    color: promotor.sincronizado ? Colors.green : Colors.orange,
-    ),
-    ),
+      elevation: 2,
+      margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      child: ListTile(
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        leading: CircleAvatar(
+          child: Text(promotor.nombre.substring(0, 1)),
+        ),
+        title: Text(
+          promotor.nombre,
+          style: const TextStyle(fontWeight: FontWeight.bold),
+        ),
+        subtitle: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Zona: ${promotor.zona}'),
+            Text(
+              'Registrado: ${promotor.fechaCreacion.day}/${promotor.fechaCreacion.month}/${promotor.fechaCreacion.year}',
+              style: const TextStyle(fontSize: 12),
+            ),
+          ],
+        ),
+        trailing: Icon(
+          promotor.sincronizado ? Icons.cloud_done : Icons.cloud_off,
+          color: promotor.sincronizado ? Colors.green : Colors.orange,
+        ),
+      ),
     );
   }
 

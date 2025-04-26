@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/registro.dart';
-import '../services/database_helper.dart';
+import 'package:promotores/services/database_helper.dart';
 import '../screens/registros_screen.dart'; // Importa la pantalla de registros
 
 class HomeScreen extends StatelessWidget {
@@ -20,7 +20,12 @@ class HomeScreen extends StatelessWidget {
               nombre: 'Nuevo ${DateTime.now().hour}:${DateTime.now().minute}',
               detalle: 'Detalle de prueba',
             );
-            await DatabaseHelper.instance.insertRegistro(nuevoRegistro);
+
+            await DatabaseHelper.instance.insertRegistro({
+              'folio': '123456',
+              'fecha': DateTime.now().toIso8601String(),
+              // otros campos que quieras insertar
+            });
 
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(content: Text('Registro añadido')),

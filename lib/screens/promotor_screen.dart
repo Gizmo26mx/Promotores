@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:promotores/services/database_helper.dart';
+import 'package:promotores/models/promotor_model.dart';
 import 'login_screen.dart';
 
 class PromotorScreen extends StatefulWidget {
@@ -9,7 +10,7 @@ class PromotorScreen extends StatefulWidget {
 
 class _PromotorScreenState extends State<PromotorScreen> {
   final TextEditingController _folioController = TextEditingController();
-  Map<String, dynamic>? _promotor;
+  Promotor? _promotor;
   String? _mensajeError;
 
   void _buscarPromotor() async {
@@ -17,8 +18,7 @@ class _PromotorScreenState extends State<PromotorScreen> {
     if (folio.isEmpty) return;
 
     try {
-      final result = await DatabaseHelper.instance.getPromotorByNumero(folio);
-
+      final result = await DatabaseHelper.instance.getPromotorByFolio(folio);
       setState(() {
         _promotor = result;
         _mensajeError = result == null ? 'No se encontró promotor' : null;
@@ -57,7 +57,7 @@ class _PromotorScreenState extends State<PromotorScreen> {
             TextField(
               controller: _folioController,
               decoration: InputDecoration(
-                labelText: 'Número de promotor',
+                labelText: 'Folio del promotor',
                 suffixIcon: IconButton(
                   icon: Icon(Icons.search),
                   onPressed: _buscarPromotor,
@@ -76,9 +76,11 @@ class _PromotorScreenState extends State<PromotorScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Nombre: ${_promotor!['nombre']}'),
-                      Text('Número: ${_promotor!['numero_promotor']}'),
-                      Text('Empresa: ${_promotor!['empresa']}'),
+                      Text('Nombre: ${_promotor!.nombre}'),
+                      Text('Folio: ${_promotor!.folio}'),
+                      Text('Sector: ${_promotor!.sector}'),
+                      Text('Vestimenta: ${_promotor!.vestimenta}'),
+                      Text('Fecha de Registro: ${_promotor!.fechaRegistro}'),
                     ],
                   ),
                 ),

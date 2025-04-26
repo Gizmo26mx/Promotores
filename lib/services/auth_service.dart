@@ -6,7 +6,7 @@ class AuthService {
 
   AuthService(this._dbHelper);
 
-  // 1. Método para login
+  // 1. Metodo para login
   Future<Usuario?> login(String username, String password) async {
     try {
       final userMap = await _dbHelper.getUser(username, password);
@@ -20,7 +20,7 @@ class AuthService {
     }
   }
 
-  // 2. Método para registro
+  // 2. Metodo para registro
   Future<bool> register(Usuario usuario) async {
     try {
       final result = await _dbHelper.insertUsuario(usuario.toMap());
@@ -31,10 +31,10 @@ class AuthService {
     }
   }
 
-  // 3. Método para verificar si usuario existe
+  // 3. Metodo para verificar si usuario existe
   Future<bool> userExists(String username) async {
     try {
-      // Implementar este método en DatabaseHelper
+      // Implementar este metodo en DatabaseHelper
       final user = await _dbHelper.getUserByUsername(username);
       return user != null;
     } catch (e) {
@@ -43,10 +43,10 @@ class AuthService {
     }
   }
 
-  // 4. Método para cambiar contraseña
+  // 4. Metodo para cambiar contraseña
   Future<bool> changePassword(String username, String newPassword) async {
     try {
-      // Implementar este método en DatabaseHelper
+      // Implementar este metodo en DatabaseHelper
       final rowsAffected = await _dbHelper.updatePassword(username, newPassword);
       return rowsAffected > 0;
     } catch (e) {
