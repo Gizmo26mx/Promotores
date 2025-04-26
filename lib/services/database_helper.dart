@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:flutter/services.dart';
 import 'package:promotores/models/promotor_model.dart';
 
 class DatabaseHelper {
@@ -15,6 +16,7 @@ class DatabaseHelper {
 
   Future<Database> get database async {
     if (_database != null) return _database!;
+
     _database = await _initDatabase();
     return _database!;
   }
@@ -26,16 +28,29 @@ class DatabaseHelper {
   Future<Database> _initDatabase() async {
     Directory documentsDirectory = await getApplicationDocumentsDirectory();
     String path = join(documentsDirectory.path, _dbName);
-    return await openDatabase(
-      path,
-      version: _dbVersion,
-      onCreate: _onCreate,
-    );
+
+    // Si la base de datos ya existe en el almacenamiento local, la abrimos
+    if (await File(path).exists()) {
+      return await openDatabase(path);
+    } else {
+      // Si no existe, la copiamos desde los assets
+      await _copyDatabase(path);
+      return await openDatabase(path);
+    }
+  }
+
+  Future<void> _copyDatabase(String path) async {
+    // Cargar la base de datos desde los assets
+    ByteData data = await rootBundle.load('assets/database/$_dbName');
+    List<int> bytes = data.buffer.asUint8List();
+
+    // Escribir el archivo de la base de datos en el almacenamiento local
+    await File(path).writeAsBytes(bytes);
   }
 
   Future<void> _onCreate(Database db, int version) async {
     // Tabla usuarios
-    await db.execute('''
+    await db.execute(''' 
       CREATE TABLE usuarios (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         username TEXT NOT NULL,
@@ -44,7 +59,7 @@ class DatabaseHelper {
     ''');
 
     // Tabla asociaciones
-    await db.execute('''
+    await db.execute(''' 
       CREATE TABLE asociaciones (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         numero_asociacion TEXT NOT NULL UNIQUE,
@@ -56,7 +71,7 @@ class DatabaseHelper {
     ''');
 
     // Tabla promotores
-    await db.execute('''
+    await db.execute(''' 
       CREATE TABLE promotores (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         folio TEXT NOT NULL UNIQUE,
@@ -137,4 +152,21 @@ class DatabaseHelper {
     final result = await db.query('promotores');
     return result.map((e) => Promotor.fromMap(e)).toList();
   }
+
+  Future<List<Promotor>> getPromotores() async {
+    final db = await database;
+    final result = await db.query('promotores');
+    return result.map((e) => Promotor.fromMap(e)).toList();
+  }
+
+  Future<Map<String, dynamic>?> getAsociacionByNumero(String numeroAsociacion) async {
+    final db = await database;
+    final result = await db.query(
+      'asociaciones',
+      where: 'numero_asociacion = ?',
+      whereArgs: [numeroAsociacion],
+    );
+    return result.isNotEmpty ? result.first : null;
+  }
+
 }

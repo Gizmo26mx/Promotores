@@ -1,122 +1,64 @@
 import 'package:flutter/material.dart';
-import 'package:promotores/services/database_helper.dart';
 import 'package:promotores/models/promotor_model.dart';
-import 'login_screen.dart';
+import 'package:promotores/services/database_helper.dart';
 
-class PromotorScreen extends StatefulWidget {
-  @override
-  _PromotorScreenState createState() => _PromotorScreenState();
-}
+class PromotorScreen extends StatelessWidget {
+  final Promotor promotor;
 
-class _PromotorScreenState extends State<PromotorScreen> {
-  final TextEditingController _folioController = TextEditingController();
-  Promotor? _promotor;
-  String? _mensajeError;
+  const PromotorScreen({Key? key, required this.promotor}) : super(key: key);
 
-  Future<void> _buscarPromotor() async {
-    final folio = _folioController.text.trim();
-    if (folio.isEmpty) return;
-
-    try {
-      final result = await DatabaseHelper.instance.getPromotorByFolio(folio);
-      setState(() {
-        _promotor = result;
-        _mensajeError = result == null ? 'No se encontró promotor' : null;
-      });
-    } catch (e) {
-      setState(() {
-        _mensajeError = 'Error al buscar promotor';
-      });
-      debugPrint('Error al buscar promotor: $e');
-    }
-  }
-
-  void _cerrarSesion() {
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (context) => LoginScreen()),
-    );
-  }
-
-  Future<Map<String, String>?> _getAsociacionInfo(int numeroAsociacion) async {
-    final asociacion = await DatabaseHelper.instance.getAsociacionByNumero(numeroAsociacion);
-    if (asociacion != null) {
-      return {
-        'lider': asociacion['lider'] ?? 'No disponible',
-        'telefono_lider': asociacion['telefono_lider'] ?? 'No disponible',
-      };
-    }
-    return null;
+  Future<Map<String, dynamic>?> _getAsociacionInfo(String numeroAsociacion) async {
+    // Ya que numeroAsociacion es String, lo pasamos directo
+    return await DatabaseHelper.instance.getAsociacionByNumero(numeroAsociacion);
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Buscar Promotor'),
-        actions: [
-          IconButton(
-            icon: Icon(Icons.logout),
-            onPressed: _cerrarSesion,
-          ),
-        ],
-      ),
+      appBar: AppBar(title: const Text('Detalles del Promotor')),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            TextField(
-              controller: _folioController,
-              decoration: InputDecoration(
-                labelText: 'Folio del promotor',
-                suffixIcon: IconButton(
-                  icon: Icon(Icons.search),
-                  onPressed: _buscarPromotor,
-                ),
-              ),
-            ),
-            SizedBox(height: 20),
-            if (_mensajeError != null)
-              Text(_mensajeError!, style: TextStyle(color: Colors.red)),
-            if (_promotor != null)
-              Card(
-                elevation: 4,
-                margin: EdgeInsets.only(top: 20),
-                child: Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text('Nombre: ${_promotor!.nombre}'),
-                      Text('Folio: ${_promotor!.folio}'),
-                      Text('Sector: ${_promotor!.sector}'),
-                      Text('Vestimenta: ${_promotor!.vestimenta}'),
-                      Text('Fecha de Registro: ${_promotor!.fechaRegistro}'),
-                      FutureBuilder<Map<String, String>?>(
-                        future: _getAsociacionInfo(_promotor!.numeroAsociacion),
-                        builder: (context, snapshot) {
-                          if (snapshot.connectionState == ConnectionState.waiting) {
-                            return const CircularProgressIndicator();
-                          } else if (snapshot.hasError) {
-                            return Text('Error: ${snapshot.error}');
-                          } else if (snapshot.hasData) {
-                            final asociacionInfo = snapshot.data;
-                            return Column(
-                              children: [
-                                Text('Líder: ${asociacionInfo?['lider']}'),
-                                Text('Teléfono Líder: ${asociacionInfo?['telefono_lider']}'),
-                              ],
-                            );
-                          } else {
-                            return const Text('Asociación no disponible');
-                          }
-                        },
-                      ),
-                    ],
+        child: FutureBuilder<Map<String, dynamic>?>(
+          future: _getAsociacionInfo(promotor.numeroAsociacion),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(child: CircularProgressIndicator());
+            } else if (snapshot.hasError) {
+              return Center(child: Text('Error: ${snapshot.error}'));
+            }
+
+            final asociacion = snapshot.data;
+
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Center(
+                  child: CircleAvatar(
+                    radius: 50,
+                    backgroundImage: promotor.foto != null
+                        ? MemoryImage(Uint8List.fromList(promotor.foto!))
+                        : const AssetImage('assets/images/avatar_default.png') as ImageProvider,
                   ),
                 ),
-              ),
-          ],
+                const SizedBox(height: 20),
+                Text(
+                  '${promotor.nombre} ${promotor.apellidos}',
+                  style: Theme.of(context).textTheme.headlineSmall,
+                ),
+                const SizedBox(height: 8),
+                Text('Folio: ${promotor.folio}'),
+                const SizedBox(height: 8),
+                Text('Asociación: ${promotor.numeroAsociacion}'),
+                const SizedBox(height: 8),
+                Text('Sector: ${promotor.sector ?? 'No disponible'}'),
+                const SizedBox(height: 8),
+                Text('Líder: ${asociacion?['lider'] ?? 'No disponible'}'),
+                Text('Teléfono líder: ${asociacion?['telefono_lider'] ?? 'No disponible'}'),
+                const SizedBox(height: 8),
+                Text('Vestimenta: ${asociacion?['vestimenta'] ?? 'No disponible'}'),
+              ],
+            );
+          },
         ),
       ),
     );

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import '../services/database_helper.dart';
 import 'package:promotores/models/promotor_model.dart';
+import 'dart:typed_data';
+import 'package:promotores/screens/promotor_screen.dart';  // Importa la pantalla de detalle
 
 class BusquedaScreen extends StatefulWidget {
   const BusquedaScreen({Key? key}) : super(key: key);
@@ -67,7 +69,7 @@ class _BusquedaScreenState extends State<BusquedaScreen> {
             CircleAvatar(
               radius: 50,
               backgroundImage: promotor.foto != null
-                  ? MemoryImage(promotor.foto!)
+                  ? MemoryImage(Uint8List.fromList(promotor.foto!)) // Convertir List<int> a Uint8List
                   : const AssetImage('assets/images/avatar_default.png') as ImageProvider,
             ),
             const SizedBox(height: 16),
@@ -100,6 +102,18 @@ class _BusquedaScreenState extends State<BusquedaScreen> {
             ),
             const SizedBox(height: 8),
             Text('Vestimenta: ${promotor.vestimenta}'),
+            const SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => PromotorScreen(promotor: promotor),
+                  ),
+                );
+              },
+              child: const Text('Ver Detalles'),
+            ),
           ],
         ),
       ),

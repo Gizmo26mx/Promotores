@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:promotores/models/promotor_model.dart';
 import 'package:promotores/services/database_helper.dart';
+import 'package:promotores/screens/promotor_screen.dart'; // Importa la pantalla de detalle
 
 class SearchScreen extends StatefulWidget {
   const SearchScreen({Key? key}) : super(key: key);
@@ -88,7 +89,7 @@ class _SearchScreenState extends State<SearchScreen> {
             CircleAvatar(
               radius: 50,
               backgroundImage: promotor.foto != null
-                  ? MemoryImage(promotor.foto!)
+                  ? MemoryImage(Uint8List.fromList(promotor.foto!)) // Conversión de List<int> a Uint8List
                   : const AssetImage('assets/images/avatar_default.png') as ImageProvider,
             ),
             const SizedBox(height: 16),
@@ -99,8 +100,8 @@ class _SearchScreenState extends State<SearchScreen> {
             const Divider(),
             _buildInfoRow('Folio', promotor.folio),
             _buildInfoRow('Asociación', promotor.numeroAsociacion.toString()),
-            _buildInfoRow('Sector', promotor.sector),
-            _buildInfoRow('Vestimenta', promotor.vestimenta),
+            _buildInfoRow('Asociación', promotor.numeroAsociacion?.toString() ?? 'No disponible'),
+            _buildInfoRow('Sector', promotor.sector ?? 'No disponible'),
             FutureBuilder<Map<String, dynamic>?>(
               future: DatabaseHelper.instance.getAsociacionByNumero(promotor.numeroAsociacion),
               builder: (context, snapshot) {
@@ -121,6 +122,19 @@ class _SearchScreenState extends State<SearchScreen> {
                   return const Text('No se encontró la asociación');
                 }
               },
+            ),
+            const SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: () {
+                // Navegar a la pantalla de detalle del promotor
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => PromotorScreen(promotor: promotor),
+                  ),
+                );
+              },
+              child: const Text('Ver Detalles'),
             ),
           ],
         ),

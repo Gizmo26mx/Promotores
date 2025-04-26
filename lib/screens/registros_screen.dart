@@ -63,7 +63,7 @@ class _RegistrosScreenState extends State<RegistrosScreen> {
     });
   }
 
-  Future<Map<String, String>?> _getAsociacionInfo(int numeroAsociacion) async {
+  Future<Map<String, String>?> _getAsociacionInfo(String numeroAsociacion) async {
     final asociacion = await DatabaseHelper.instance.getAsociacionByNumero(numeroAsociacion);
     if (asociacion != null) {
       return {
@@ -73,6 +73,7 @@ class _RegistrosScreenState extends State<RegistrosScreen> {
     }
     return null;
   }
+
 
   Widget _buildItem(Promotor promotor) {
     return Card(
@@ -90,10 +91,6 @@ class _RegistrosScreenState extends State<RegistrosScreen> {
         subtitle: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              'Registrado: ${promotor.fechaCreacion.day}/${promotor.fechaCreacion.month}/${promotor.fechaCreacion.year}',
-              style: const TextStyle(fontSize: 12),
-            ),
             FutureBuilder<Map<String, String>?>(
               future: _getAsociacionInfo(promotor.numeroAsociacion),
               builder: (context, snapshot) {

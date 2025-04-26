@@ -21,12 +21,6 @@ class HomeScreen extends StatelessWidget {
               detalle: 'Detalle de prueba',
             );
 
-            await DatabaseHelper.instance.insertRegistro({
-              'folio': '123456',
-              'fecha': DateTime.now().toIso8601String(),
-              // otros campos que quieras insertar
-            });
-
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(content: Text('Registro añadido')),
             );
