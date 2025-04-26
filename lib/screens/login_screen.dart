@@ -23,18 +23,25 @@ class _LoginScreenState extends State<LoginScreen> {
       );
 
       if (user != null) {
-        // Obtener el promotor correspondiente
-        final promotor = await DatabaseHelper.instance.getPromotorByFolio(user['folio']);
+        // Verificar si 'folio' está presente en los datos del usuario
+        if (user['folio'] != null) {
+          // Obtener el promotor correspondiente usando el 'folio'
+          final promotor = await DatabaseHelper.instance.getPromotorByFolio(user['folio']);
 
-        if (promotor != null) {
-          // Navegar a PromotorScreen con el promotor como parámetro
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (context) => PromotorScreen(promotor: promotor)),
-          );
+          if (promotor != null) {
+            // Navegar a PromotorScreen con el promotor como parámetro
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => PromotorScreen(promotor: promotor)),
+            );
+          } else {
+            setState(() {
+              _errorMessage = 'Promotor no encontrado';
+            });
+          }
         } else {
           setState(() {
-            _errorMessage = 'Promotor no encontrado';
+            _errorMessage = 'Folio no encontrado en los datos del usuario';
           });
         }
       } else {
